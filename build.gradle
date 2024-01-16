@@ -1,0 +1,15 @@
+apply plugin: 'cpp'
+
+def shouldExecuteSwig = project.hasProperty("executeSwig") ? project.getProperty("executeSwig").toBoolean() : false
+
+task swig(type: Exec) { // If you have swig executable, replace 'swig' with 'path/to/swig.exe'
+    onlyIf { shouldExecuteSwig }
+    commandLine 'swig', '-c++', '-java', '-outdir', 'src/main/java', 'src/main/cpp/example.swg'
+}
+
+task buildNativeDll(type: Exec, dependsOn: swig) {
+    onlyIf { shouldExecuteSwig }
+    commandLine 'g++', '-shared', '-o', 'src/main/resources/example.dll', 'src/main/cpp/example_wrap.cxx', '-I./src/main/cpp'
+}
+
+build.dependsOn buildNativeDll
